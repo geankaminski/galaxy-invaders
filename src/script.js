@@ -1,12 +1,33 @@
 import * as THREE from 'three'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import GUI from 'lil-gui'
+import { gsap } from 'gsap'
 
-const cubeTextureLoader = new THREE.CubeTextureLoader()
-const textureLoader = new THREE.TextureLoader()
+const loadingBarElement = document.querySelector('.loading-bar')
+const radarElement = document.getElementById('radar')
 
-const gui = new GUI()
+const loadingManager = new THREE.LoadingManager(
+    () => {
+        window.setTimeout(() => {
+            gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 3, value: 0, delay: 1 })
+
+            loadingBarElement.classList.add('ended')
+            loadingBarElement.style.transform = ''
+
+            setTimeout(() => {
+                radarElement.style.display = 'block'
+                start = true
+            }, 5000)
+        }, 500)
+    },
+    (itemUrl, itemsLoaded, itemsTotal) => {
+        const progressRatio = itemsLoaded / itemsTotal
+        loadingBarElement.style.transform = `scaleX(${progressRatio})`
+    }
+)
+
+const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager)
+const textureLoader = new THREE.TextureLoader(loadingManager)
 
 const canvas = document.querySelector('canvas.webgl')
 
@@ -14,8 +35,10 @@ const scene = new THREE.Scene()
 
 const parameters = {
     orbitScale: 1.2,
-    orbitVelocity: 0.1,
+    orbitVelocity: 0.04,
 }
+
+let start = false
 
 const sunTexture = textureLoader.load('/sunmap.jpg')
 const mercuryTexture = textureLoader.load('/mercurymap.jpg')
@@ -28,6 +51,31 @@ const saturnTexture = textureLoader.load('/saturnmap.jpg')
 const saturnRingTexture = textureLoader.load('/saturnringmap.jpg')
 const uranusTexture = textureLoader.load('/uranusmap.jpg')
 const neptuneTexture = textureLoader.load('/neptunemap.jpg')
+
+const overlayGeometry = new THREE.PlaneGeometry(2, 2, 1, 1)
+const overlayMaterial = new THREE.ShaderMaterial({
+    transparent: true,
+    uniforms:
+    {
+        uAlpha: { value: 1 }
+    },
+    vertexShader: `
+        void main()
+        {
+            gl_Position = vec4(position, 1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform float uAlpha;
+
+        void main()
+        {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, uAlpha);
+        }
+    `
+})
+const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial)
+scene.add(overlay)
 
 const sphere = new THREE.SphereGeometry(1, 32, 32)
 
@@ -112,14 +160,7 @@ function initMercury() {
             roughness: 0.6,
         })
     )
-
-    const angle = Math.random() * Math.PI * 2;
-    const radius = (5.8 + Math.random() * 5) / parameters.orbitScale;
-    mercury.position.x = Math.cos(angle) * radius;
-    mercury.position.z = Math.sin(angle) * radius;
-    mercury.position.y = (Math.random() - 0.5) * 10;
     mercury.scale.set(0.1, 0.1, 0.1);
-
     mercury.name = 'mercury';
     scene.add(mercury);
 }
@@ -133,14 +174,7 @@ function initVenus() {
             roughness: 0.6,
         })
     )
-
-    const angle = Math.random() * Math.PI;
-    const radius = Math.random() * 10.8 / parameters.orbitScale;
-    venus.position.x = Math.cos(angle) * radius;
-    venus.position.z = Math.sin(angle) * radius;
-    venus.position.y = Math.sin(Math.random() * Math.PI * 2) * 0.2;
     venus.scale.set(0.3, 0.3, 0.3);
-
     venus.name = 'venus';
     scene.add(venus);
 }
@@ -172,10 +206,7 @@ function initEarth() {
     group.add(moon)
 
     group.name = 'earthAndMoon'
-
     scene.add(group)
-    group.position.x = 15 / parameters.orbitScale
-    group.position.z = 15 / parameters.orbitScale
 }
 
 
@@ -188,14 +219,7 @@ function initMars() {
             roughness: 0.6,
         })
     )
-
-    const angle = Math.random() * Math.PI * 6;
-    const radius = Math.random() * 23 / parameters.orbitScale;
-    mars.position.x = Math.cos(angle) * radius;
-    mars.position.z = Math.sin(angle) * radius;
-    mars.position.y = Math.sin(Math.random() * Math.PI * 2) * 0.2;
     mars.scale.set(0.2, 0.2, 0.2);
-
     mars.name = 'mars';
     scene.add(mars);
 }
@@ -209,14 +233,7 @@ function initJupiter() {
             roughness: 0.6,
         })
     )
-
-    const angle = Math.random() * Math.PI * 2;
-    const radius = Math.random() * 78 / parameters.orbitScale;
-    jupiter.position.x = Math.cos(angle) * radius;
-    jupiter.position.z = Math.sin(angle) * radius;
-    jupiter.position.y = Math.sin(Math.random() * Math.PI * 2) * 0.2;
     jupiter.scale.set(3.5, 3.5, 3.5);
-
     jupiter.name = 'jupiter';
     scene.add(jupiter);
 }
@@ -250,8 +267,6 @@ function initSaturn() {
 
     group.name = 'saturn'
     scene.add(group)
-    group.position.x = 143 / parameters.orbitScalew
-    group.position.z = 143 / parameters.orbitScale
 }
 
 function initUranus() {
@@ -263,14 +278,7 @@ function initUranus() {
             roughness: 0.6,
         })
     )
-
-    const angle = Math.random() * Math.PI * 2;
-    const radius = Math.random() * 287 / parameters.orbitScale;
-    uranus.position.x = Math.cos(angle) * radius;
-    uranus.position.z = Math.sin(angle) * radius;
-    uranus.position.y = Math.sin(Math.random() * Math.PI * 2) * 0.2;
     uranus.scale.set(1.4, 1.4, 1.4);
-
     uranus.name = 'uranus';
     scene.add(uranus);
 }
@@ -284,13 +292,7 @@ function initNeptune() {
             roughness: 0.6,
         })
     )
-    const angle = Math.random() * Math.PI * 12;
-    const radius = Math.random() * 450 / parameters.orbitScale;
-    neptune.position.x = Math.cos(angle) * radius;
-    neptune.position.z = Math.sin(angle) * radius;
-    neptune.position.y = Math.sin(Math.random() * Math.PI * 2) * 0.2;
     neptune.scale.set(3.5, 3.5, 3.5);
-
     neptune.name = 'neptune';
     scene.add(neptune);
 }
@@ -335,23 +337,52 @@ function addRadar() {
 }
 
 function removeAlien(alien) {
-    console.log("Removendo alien: ", alien.name);
+    const alienParent = alien.parent;
 
-    alienLine.remove(alien);
-    console.log("Número de aliens restantes na linha: ", alienLine.children.length);
-
-    if (alienLine.children.length === 0) {
-        console.log("Não há mais aliens na linha. Removendo linha.")
-        scene.remove(alienLine);
+    if (alienParent !== null) {
+        alienLine.remove(alienParent);
     }
 }
 
 function handleLaser() {
-    if (!spaceship) return;
-}
+    if (!spaceship || spaceshipShots.length) return;
 
-function createExplosion(position) {
+    const raycaster = new THREE.Raycaster()
+    const rayOrigin = new THREE.Vector3()
+    const rayDirection = new THREE.Vector3()
 
+    rayOrigin.setFromMatrixPosition(spaceship.matrixWorld)
+    rayDirection.set(0, 0, 1).applyQuaternion(spaceship.quaternion)
+    rayDirection.applyAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2)
+
+    raycaster.set(rayOrigin, rayDirection)
+    raycaster.far = 200
+
+    const intersects = raycaster.intersectObjects(alienLine.children, true);
+
+    if (intersects.length > 0) {
+        removeAlien(intersects[0].object);
+    }
+
+    const laser = new THREE.Mesh(
+        new THREE.BoxGeometry(0.1, 0.1, 1),
+        new THREE.MeshBasicMaterial({ color: 0xff0000 })
+    )
+
+    laser.position.set(rayOrigin.x, rayOrigin.y, rayOrigin.z)
+    laser.rotation.set(spaceship.rotation.x, spaceship.rotation.y, spaceship.rotation.z)
+    laser.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 2)
+    laser.direction = rayDirection
+
+    const audio = new Audio('/shot.mp3')
+    audio.play()
+
+    spaceshipShots.push(laser)
+    scene.add(laser)
+
+    setTimeout(() => {
+        removeLaser()
+    }, 1500)
 }
 
 window.addEventListener('resize', () => {
@@ -367,6 +398,8 @@ window.addEventListener('resize', () => {
 
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 500)
 scene.add(camera)
+camera.position.set(20, 100, 20)
+camera.lookAt(scene.position)
 
 let spaceship;
 const gltfLoader = new GLTFLoader()
@@ -374,13 +407,13 @@ gltfLoader.load(
     'spaceship.gltf',
     (gltf) => {
         spaceship = gltf.scene
-        spaceship.scale.set(0.1, 0.1, 0.1)
+        spaceship.scale.set(0.14, 0.14, 0.14)
         spaceship.name = 'spaceship'
         spaceship.position.y = 40
         scene.add(spaceship)
 
         const spaceshipLight = new THREE.PointLight(0xffffff, 1, 10, 1);
-        spaceshipLight.position.set(1, 4, 2);
+        spaceshipLight.position.set(2, 4, 2);
         spaceship.add(spaceshipLight);
     }
 )
@@ -393,54 +426,43 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 const clock = new THREE.Clock()
 
-gui.add(parameters, 'orbitScale').min(1).max(5).step(0.1).name('Orbit Scale')
-gui.add(parameters, 'orbitVelocity').min(0.1).max(10).step(0.1).name('Orbit Velocity')
-
 const tick = () => {
     const elapsedTime = clock.getElapsedTime()
 
     const mercury = scene.getObjectByName('mercury')
-    mercury.position.x = Math.cos(elapsedTime * parameters.orbitVelocity) * 5.8 / parameters.orbitScale
-    mercury.position.z = Math.sin(elapsedTime * parameters.orbitVelocity) * 5.8 / parameters.orbitScale
-    mercury.position.y = Math.sin(elapsedTime * 0.6)
+    mercury.position.x = Math.cos(elapsedTime * 3 * parameters.orbitVelocity) * 5.8 / parameters.orbitScale;
+    mercury.position.z = Math.sin(elapsedTime * 3 * parameters.orbitVelocity) * 5.8 / parameters.orbitScale;
 
     const venus = scene.getObjectByName('venus')
-    venus.position.x = Math.cos(elapsedTime * 0.9 * parameters.orbitVelocity) * 10.8 / parameters.orbitScale
-    venus.position.z = Math.sin(elapsedTime * 0.9 * parameters.orbitVelocity) * 10.8 / parameters.orbitScale
-    venus.position.y = Math.sin(elapsedTime * 0.6)
+    venus.position.x = Math.cos(elapsedTime * 4 * parameters.orbitVelocity) * 10.8 / parameters.orbitScale
+    venus.position.z = Math.sin(elapsedTime * 4 * parameters.orbitVelocity) * 10.8 / parameters.orbitScale
 
     const earthAndMoon = scene.getObjectByName('earthAndMoon')
-    earthAndMoon.position.x = Math.cos(elapsedTime * 0.7 * parameters.orbitVelocity) * 15 / parameters.orbitScale
-    earthAndMoon.position.z = Math.sin(elapsedTime * 0.7 * parameters.orbitVelocity) * 15 / parameters.orbitScale
-    earthAndMoon.position.y = Math.sin(elapsedTime * 0.5)
+    earthAndMoon.position.x = Math.cos(elapsedTime * 8 * parameters.orbitVelocity) * 15 / parameters.orbitScale
+    earthAndMoon.position.z = Math.sin(elapsedTime * 8 * parameters.orbitVelocity) * 15 / parameters.orbitScale
 
-    earthAndMoon.children[1].position.x = Math.cos(elapsedTime * 0.5 * parameters.orbitVelocity) * 2 / parameters.orbitScale
-    earthAndMoon.children[1].position.z = Math.sin(elapsedTime * 0.5 * parameters.orbitVelocity) * 2 / parameters.orbitScale
+    earthAndMoon.children[1].position.x = Math.cos(elapsedTime * 2 * parameters.orbitVelocity * 12) * 2 / parameters.orbitScale
+    earthAndMoon.children[1].position.z = Math.sin(elapsedTime * 2 * parameters.orbitVelocity * 12) * 2 / parameters.orbitScale
 
     const mars = scene.getObjectByName('mars')
-    mars.position.x = Math.cos(elapsedTime * 0.5 * parameters.orbitVelocity) * 23 / parameters.orbitScale
-    mars.position.z = Math.sin(elapsedTime * 0.5 * parameters.orbitVelocity) * 23 / parameters.orbitScale
-    mars.position.y = Math.sin(elapsedTime * 0.5)
+    mars.position.x = Math.cos(elapsedTime * 6 * parameters.orbitVelocity) * 23 / parameters.orbitScale
+    mars.position.z = Math.sin(elapsedTime * 6 * parameters.orbitVelocity) * 23 / parameters.orbitScale
 
     const jupiter = scene.getObjectByName('jupiter')
-    jupiter.position.x = Math.cos(elapsedTime * 0.3 * parameters.orbitVelocity) * 78 / parameters.orbitScale
-    jupiter.position.z = Math.sin(elapsedTime * 0.3 * parameters.orbitVelocity) * 78 / parameters.orbitScale
-    jupiter.position.y = Math.sin(elapsedTime * 0.3)
+    jupiter.position.x = Math.cos(elapsedTime * 4 * parameters.orbitVelocity) * 78 / parameters.orbitScale
+    jupiter.position.z = Math.sin(elapsedTime * 4 * parameters.orbitVelocity) * 78 / parameters.orbitScale
 
     const saturn = scene.getObjectByName('saturn')
-    saturn.position.x = Math.cos(elapsedTime * 0.2 * parameters.orbitVelocity) * 143 / parameters.orbitScale
-    saturn.position.z = Math.sin(elapsedTime * 0.2 * parameters.orbitVelocity) * 143 / parameters.orbitScale
-    saturn.position.y = Math.sin(elapsedTime * 0.2)
+    saturn.position.x = Math.cos(elapsedTime * 4 * parameters.orbitVelocity) * 143 / parameters.orbitScale
+    saturn.position.z = Math.sin(elapsedTime * 4 * parameters.orbitVelocity) * 143 / parameters.orbitScale
 
     const uranus = scene.getObjectByName('uranus')
-    uranus.position.x = Math.cos(elapsedTime * 0.1 * parameters.orbitVelocity) * 287 / parameters.orbitScale
-    uranus.position.z = Math.sin(elapsedTime * 0.1 * parameters.orbitVelocity) * 287 / parameters.orbitScale
-    uranus.position.y = Math.sin(elapsedTime * 0.1)
+    uranus.position.x = Math.cos(elapsedTime * 2 * parameters.orbitVelocity) * 287 / parameters.orbitScale
+    uranus.position.z = Math.sin(elapsedTime * 2 * parameters.orbitVelocity) * 287 / parameters.orbitScale
 
     const neptune = scene.getObjectByName('neptune')
-    neptune.position.x = Math.cos(elapsedTime * 0.05 * parameters.orbitVelocity) * 450 / parameters.orbitScale
-    neptune.position.z = Math.sin(elapsedTime * 0.05 * parameters.orbitVelocity) * 450 / parameters.orbitScale
-    neptune.position.y = Math.sin(elapsedTime * 0.05)
+    neptune.position.x = Math.cos(elapsedTime * 1 * parameters.orbitVelocity) * 450 / parameters.orbitScale
+    neptune.position.z = Math.sin(elapsedTime * 1 * parameters.orbitVelocity) * 450 / parameters.orbitScale
 
     const alienLine = scene.getObjectByName('alienLine')
     if (alienLine) {
@@ -448,7 +470,7 @@ const tick = () => {
     }
 
     const spaceship = scene.getObjectByName('spaceship')
-    if (spaceship) {
+    if (spaceship && start) {
         const cameraPosition = new THREE.Vector3()
         cameraPosition.setFromMatrixPosition(camera.matrixWorld)
 
@@ -461,13 +483,17 @@ const tick = () => {
 
         const desiredPosition = spaceshipPosition.clone().add(offset)
 
-        const smoothFactor = 0.1
+        const smoothFactor = 0.05
         camera.position.lerp(desiredPosition, smoothFactor)
 
         camera.quaternion.y = Math.PI
 
         camera.lookAt(spaceshipPosition)
     }
+
+    spaceshipShots.forEach((laser) => {
+        laser.position.add(laser.direction.clone().multiplyScalar(10))
+    });
 
     renderer.render(scene, camera)
 
@@ -485,24 +511,29 @@ function removeLaser() {
     spaceshipShots.forEach((laser) => {
         scene.remove(laser);
     });
+
     spaceshipShots = [];
 }
 
 document.addEventListener('keydown', (event) => {
     switch (event.code) {
         case 'KeyW':
+        case 'ArrowUp':
             movement.upward = true;
             spaceship.rotation.z = -Math.PI / 6
             break;
         case 'KeyA':
+        case 'ArrowLeft':
             movement.left = true;
             spaceship.rotation.x = Math.PI / 12
             break;
         case 'KeyD':
+        case 'ArrowRight':
             movement.right = true;
             spaceship.rotation.x = -Math.PI / 12
             break;
         case 'KeyS':
+        case 'ArrowDown':
             movement.downward = true;
             spaceship.rotation.z = Math.PI / 6
             break;
@@ -515,18 +546,22 @@ document.addEventListener('keydown', (event) => {
 document.addEventListener('keyup', (event) => {
     switch (event.code) {
         case 'KeyW':
+        case 'ArrowUp':
             movement.upward = false;
             spaceship.rotation.z = 0;
             break;
         case 'KeyA':
+        case 'ArrowLeft':
             movement.left = false;
             spaceship.rotation.x = 0;
             break;
         case 'KeyD':
+        case 'ArrowRight':
             movement.right = false;
             spaceship.rotation.x = 0;
             break;
         case 'KeyS':
+        case 'ArrowDown':
             movement.downward = false;
             spaceship.rotation.z = 0;
             break;
