@@ -13,7 +13,7 @@ const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene()
 
 const parameters = {
-    orbitScale: 1.5,
+    orbitScale: 1.2,
     orbitVelocity: 0.1,
 }
 
@@ -80,7 +80,7 @@ initJupiter()
 initSaturn()
 initUranus()
 initNeptune()
-// addRadar()
+addRadar()
 
 let spaceshipShots = []
 
@@ -112,12 +112,16 @@ function initMercury() {
             roughness: 0.6,
         })
     )
-    mercury.position.x = 5.8 / parameters.orbitScale
-    mercury.position.z = 5.8 / parameters.orbitScale
-    mercury.scale.set(0.1, 0.1, 0.1)
 
-    mercury.name = 'mercury'
-    scene.add(mercury)
+    const angle = Math.random() * Math.PI * 2;
+    const radius = (5.8 + Math.random() * 5) / parameters.orbitScale;
+    mercury.position.x = Math.cos(angle) * radius;
+    mercury.position.z = Math.sin(angle) * radius;
+    mercury.position.y = (Math.random() - 0.5) * 10;
+    mercury.scale.set(0.1, 0.1, 0.1);
+
+    mercury.name = 'mercury';
+    scene.add(mercury);
 }
 
 function initVenus() {
@@ -129,12 +133,16 @@ function initVenus() {
             roughness: 0.6,
         })
     )
-    venus.position.x = 10.8 / parameters.orbitScale
-    venus.position.z = 10.8 / parameters.orbitScale
-    venus.scale.set(0.3, 0.3, 0.3)
 
-    venus.name = 'venus'
-    scene.add(venus)
+    const angle = Math.random() * Math.PI;
+    const radius = Math.random() * 10.8 / parameters.orbitScale;
+    venus.position.x = Math.cos(angle) * radius;
+    venus.position.z = Math.sin(angle) * radius;
+    venus.position.y = Math.sin(Math.random() * Math.PI * 2) * 0.2;
+    venus.scale.set(0.3, 0.3, 0.3);
+
+    venus.name = 'venus';
+    scene.add(venus);
 }
 
 function initEarth() {
@@ -170,6 +178,7 @@ function initEarth() {
     group.position.z = 15 / parameters.orbitScale
 }
 
+
 function initMars() {
     const mars = new THREE.Mesh(
         sphere,
@@ -179,12 +188,16 @@ function initMars() {
             roughness: 0.6,
         })
     )
-    mars.position.x = 23 / parameters.orbitScale
-    mars.position.z = 23 / parameters.orbitScale
-    mars.scale.set(0.2, 0.2, 0.2)
 
-    mars.name = 'mars'
-    scene.add(mars)
+    const angle = Math.random() * Math.PI * 6;
+    const radius = Math.random() * 23 / parameters.orbitScale;
+    mars.position.x = Math.cos(angle) * radius;
+    mars.position.z = Math.sin(angle) * radius;
+    mars.position.y = Math.sin(Math.random() * Math.PI * 2) * 0.2;
+    mars.scale.set(0.2, 0.2, 0.2);
+
+    mars.name = 'mars';
+    scene.add(mars);
 }
 
 function initJupiter() {
@@ -196,12 +209,16 @@ function initJupiter() {
             roughness: 0.6,
         })
     )
-    jupiter.position.x = 78 / parameters.orbitScale
-    jupiter.position.z = 78 / parameters.orbitScale
-    jupiter.scale.set(3.5, 3.5, 3.5)
 
-    jupiter.name = 'jupiter'
-    scene.add(jupiter)
+    const angle = Math.random() * Math.PI * 2;
+    const radius = Math.random() * 78 / parameters.orbitScale;
+    jupiter.position.x = Math.cos(angle) * radius;
+    jupiter.position.z = Math.sin(angle) * radius;
+    jupiter.position.y = Math.sin(Math.random() * Math.PI * 2) * 0.2;
+    jupiter.scale.set(3.5, 3.5, 3.5);
+
+    jupiter.name = 'jupiter';
+    scene.add(jupiter);
 }
 
 function initSaturn() {
@@ -246,12 +263,16 @@ function initUranus() {
             roughness: 0.6,
         })
     )
-    uranus.position.x = 287 / parameters.orbitScale
-    uranus.position.z = 287 / parameters.orbitScale
-    uranus.scale.set(1.4, 1.4, 1.4)
 
-    uranus.name = 'uranus'
-    scene.add(uranus)
+    const angle = Math.random() * Math.PI * 2;
+    const radius = Math.random() * 287 / parameters.orbitScale;
+    uranus.position.x = Math.cos(angle) * radius;
+    uranus.position.z = Math.sin(angle) * radius;
+    uranus.position.y = Math.sin(Math.random() * Math.PI * 2) * 0.2;
+    uranus.scale.set(1.4, 1.4, 1.4);
+
+    uranus.name = 'uranus';
+    scene.add(uranus);
 }
 
 function initNeptune() {
@@ -263,12 +284,15 @@ function initNeptune() {
             roughness: 0.6,
         })
     )
-    neptune.position.x = 592 / parameters.orbitScale
-    neptune.position.z = 592 / parameters.orbitScale
-    neptune.scale.set(3.5, 3.5, 3.5)
+    const angle = Math.random() * Math.PI * 12;
+    const radius = Math.random() * 450 / parameters.orbitScale;
+    neptune.position.x = Math.cos(angle) * radius;
+    neptune.position.z = Math.sin(angle) * radius;
+    neptune.position.y = Math.sin(Math.random() * Math.PI * 2) * 0.2;
+    neptune.scale.set(3.5, 3.5, 3.5);
 
-    neptune.name = 'neptune'
-    scene.add(neptune)
+    neptune.name = 'neptune';
+    scene.add(neptune);
 }
 
 function addRadar() {
@@ -296,16 +320,18 @@ function addRadar() {
 
         const angle = Math.atan2(spaceship.position.z, spaceship.position.x)
 
-        const x = radarCenterX + Math.cos(angle) * distance / 1
-        const y = radarCenterY + Math.sin(angle) * distance / 1
+        const x = radarCenterX + Math.cos(angle) * distance / 3
+        const y = radarCenterY + Math.sin(angle) * distance / 3
 
         if (x > 0 && x < radar.width && y > 0 && y < radar.height) {
             radarCanvas.fillStyle = 'white'
-            radarCanvas.fillRect(x - 4, y - 4, 8, 8)
+            radarCanvas.fillRect(x - 4, y - 3, 8, 8)
         }
     }
 
-    requestAnimationFrame(addRadar)
+    setTimeout(() => {
+        addRadar()
+    }, 1500)
 }
 
 function removeAlien(alien) {
@@ -322,32 +348,10 @@ function removeAlien(alien) {
 
 function handleLaser() {
     if (!spaceship) return;
+}
 
-    const raycaster = new THREE.Raycaster();
+function createExplosion(position) {
 
-    const origin = new THREE.Vector3();
-    const direction = new THREE.Vector3();
-
-    origin.copy(spaceship.position);
-    origin.y += 0.5;
-
-    direction.set(0, 0, -1).applyQuaternion(spaceship.quaternion).applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2)
-
-    raycaster.set(origin, direction);
-
-    const intersects = raycaster.intersectObjects(alienLine.children, true);
-    if (intersects.length > 0) {
-        const hitAlien = intersects[0].object;
-        removeAlien(hitAlien);
-    }
-
-    const laserGeometry = new THREE.BufferGeometry().setFromPoints([origin, origin.clone().add(direction.multiplyScalar(100))]);
-    const laserMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-    const laser = new THREE.Line(laserGeometry, laserMaterial);
-
-    scene.add(laser);
-
-    spaceshipShots.push(laser);
 }
 
 window.addEventListener('resize', () => {
@@ -370,7 +374,7 @@ gltfLoader.load(
     'spaceship.gltf',
     (gltf) => {
         spaceship = gltf.scene
-        spaceship.scale.set(0.2, 0.2, 0.2)
+        spaceship.scale.set(0.1, 0.1, 0.1)
         spaceship.name = 'spaceship'
         spaceship.position.y = 40
         scene.add(spaceship)
@@ -535,7 +539,7 @@ document.addEventListener('keyup', (event) => {
 let rotationAngle = Math.PI
 
 const updateMovement = () => {
-    const speed = 0.4;
+    const speed = 0.2;
 
     if (spaceship) {
         if (movement.left) {
