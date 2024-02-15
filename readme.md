@@ -1,4 +1,6 @@
-# Three.js Journey
+# Galaxy Invaders
+
+Galaxy Invaders is 3D game made with Three.js. The game is a simple space shooter where the player has to destroy the enemies.
 
 ## Setup
 Download [Node.js](https://nodejs.org/en/download/).
